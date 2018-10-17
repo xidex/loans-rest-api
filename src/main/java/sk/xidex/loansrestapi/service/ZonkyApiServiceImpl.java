@@ -17,7 +17,7 @@ public class ZonkyApiServiceImpl implements ZonkyApiService {
 
     private static final String LIST_LOANS = "https://private-anon-09c3ac41f9-zonky.apiary-proxy.com/loans/marketplace";
 
-    protected int pageSize = 1000;
+    int pageSize = 1000;
     private RestTemplate restTemplate;
 
     @Autowired
