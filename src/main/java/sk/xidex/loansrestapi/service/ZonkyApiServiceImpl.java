@@ -30,18 +30,12 @@ public class ZonkyApiServiceImpl implements ZonkyApiService {
         String url = LIST_LOANS + "?rating__eq=" + rating + "&fields=amount";
         List<Double> averages = new ArrayList<>();
         ResponseEntity<List<Loan>> response;
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         int pageNr = 0;
-        headers.add("x-page", Integer.toString(pageNr));
-        headers.add("x-size", Integer.toString(pageSize));
+        HttpHeaders headers = prepareDefaultHeaders(pageNr);
+
         do {
             HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
-            response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    new ParameterizedTypeReference<List<Loan>>() {
+            response = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<List<Loan>>() {
                     }
             );
             if (response.getBody() == null) {
@@ -56,5 +50,13 @@ public class ZonkyApiServiceImpl implements ZonkyApiService {
         } while (!response.getBody().isEmpty());
 
         return averages.parallelStream().mapToDouble(Double::doubleValue).average().orElse(0);
+    }
+
+    private HttpHeaders prepareDefaultHeaders(int pageNr) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        httpHeaders.add("x-page", Integer.toString(pageNr));
+        httpHeaders.add("x-size", Integer.toString(pageSize));
+        return httpHeaders;
     }
 }
