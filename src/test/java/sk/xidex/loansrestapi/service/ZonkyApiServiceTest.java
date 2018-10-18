@@ -15,6 +15,7 @@ import sk.xidex.loansrestapi.service.model.Loan;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ZonkyApiServiceTest {
@@ -26,6 +27,7 @@ public class ZonkyApiServiceTest {
 
 	@Test
 	public void calculateAverageLoanAmount_ratingGiven_averageReturned() {
+		Mockito.when(zonkyApiClient.getNumberOfLoans(Mockito.anyString())).thenReturn(4);
 		Mockito.when(zonkyApiClient.getLoans(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
 				.thenReturn(createResponse())
 				.thenReturn(createSecondResponse());
@@ -38,22 +40,21 @@ public class ZonkyApiServiceTest {
 
 	@Test
 	public void calculateAverageLoanAmount_incorrectRatingGiven_zeroReturned() {
-		Mockito.when(zonkyApiClient.getLoans(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
-				.thenReturn(new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK));
+		Mockito.when(zonkyApiClient.getNumberOfLoans(Mockito.anyString())).thenReturn(0);
 
 		double average = zonkyApiService.calculateAverageLoanAmount("x");
 		Assert.assertEquals(0, average, 0.0);
 	}
 
-	private ResponseEntity<List<Loan>> createResponse() {
+	private CompletableFuture<List<Loan>> createResponse() {
 		List<Loan> loans = new ArrayList<>();
 		loans.add(new Loan(1000));
 		loans.add(new Loan(2000));
 		loans.add(new Loan(3000));
-		return new ResponseEntity<>(loans, HttpStatus.OK);
+		return CompletableFuture.completedFuture(loans);
 	}
 
-	private ResponseEntity<List<Loan>> createSecondResponse() {
-		return new ResponseEntity<>(Collections.singletonList(new Loan(1000)), HttpStatus.OK);
+	private CompletableFuture<List<Loan>> createSecondResponse() {
+		return CompletableFuture.completedFuture(Collections.singletonList(new Loan(1000)));
 	}
 }
