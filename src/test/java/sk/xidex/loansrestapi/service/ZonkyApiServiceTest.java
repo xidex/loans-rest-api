@@ -3,16 +3,13 @@ package sk.xidex.loansrestapi.service;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import sk.xidex.loansrestapi.service.client.ZonkyApiClientImpl;
 import sk.xidex.loansrestapi.service.model.Loan;
 
 import java.util.ArrayList;
@@ -23,13 +20,13 @@ import java.util.List;
 public class ZonkyApiServiceTest {
 
 	@Mock
-	private RestTemplate restTemplate;
+	private ZonkyApiClientImpl zonkyApiClient;
 	@InjectMocks
 	private ZonkyApiServiceImpl zonkyApiService;
 
 	@Test
 	public void calculateAverageLoanAmount_ratingGiven_averageReturned() {
-		Mockito.when(restTemplate.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class), Mockito.any(), ArgumentMatchers.<ParameterizedTypeReference<List<Loan>>>any()))
+		Mockito.when(zonkyApiClient.getLoans(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
 				.thenReturn(createResponse())
 				.thenReturn(createSecondResponse());
 		zonkyApiService.pageSize = 3;
@@ -41,7 +38,7 @@ public class ZonkyApiServiceTest {
 
 	@Test
 	public void calculateAverageLoanAmount_incorrectRatingGiven_zeroReturned() {
-		Mockito.when(restTemplate.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class), Mockito.any(), ArgumentMatchers.<ParameterizedTypeReference<List<Loan>>>any()))
+		Mockito.when(zonkyApiClient.getLoans(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
 				.thenReturn(new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK));
 
 		double average = zonkyApiService.calculateAverageLoanAmount("x");

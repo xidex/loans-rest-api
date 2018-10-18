@@ -1,43 +1,33 @@
 package sk.xidex.loansrestapi.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import sk.xidex.loansrestapi.service.client.ZonkyApiClient;
 import sk.xidex.loansrestapi.service.model.Loan;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class ZonkyApiServiceImpl implements ZonkyApiService {
 
-    private static final String LIST_LOANS = "https://private-anon-09c3ac41f9-zonky.apiary-proxy.com/loans/marketplace";
-
+    private ZonkyApiClient zonkyApiClient;
     int pageSize = 1000;
-    private RestTemplate restTemplate;
 
     @Autowired
-    public ZonkyApiServiceImpl(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public ZonkyApiServiceImpl(ZonkyApiClient zonkyApiClient) {
+        this.zonkyApiClient = zonkyApiClient;
     }
 
     @Override
     public double calculateAverageLoanAmount(String rating) {
-        String url = LIST_LOANS + "?rating__eq=" + rating + "&fields=amount";
         List<Double> averages = new ArrayList<>();
-        ResponseEntity<List<Loan>> response;
         int pageNr = 0;
-        HttpHeaders headers = prepareDefaultHeaders(pageNr);
-
+        ResponseEntity<List<Loan>> response;
         do {
-            HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
-            response = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<List<Loan>>() {
-                    }
-            );
+            response = zonkyApiClient.getLoans(rating, pageNr, pageSize);
             if (response.getBody() == null) {
                 break;
             }
@@ -46,17 +36,8 @@ public class ZonkyApiServiceImpl implements ZonkyApiService {
                 break;
             }
             pageNr++;
-            headers.set("x-page", Integer.toString(pageNr));
         } while (!response.getBody().isEmpty());
 
         return averages.parallelStream().mapToDouble(Double::doubleValue).average().orElse(0);
-    }
-
-    private HttpHeaders prepareDefaultHeaders(int pageNr) {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        httpHeaders.add("x-page", Integer.toString(pageNr));
-        httpHeaders.add("x-size", Integer.toString(pageSize));
-        return httpHeaders;
     }
 }

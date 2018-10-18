@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import sk.xidex.loansrestapi.handler.RestResponseEntityExceptionHandler;
 import sk.xidex.loansrestapi.service.ZonkyApiService;
 import sk.xidex.loansrestapi.service.ZonkyApiServiceImpl;
+import sk.xidex.loansrestapi.service.client.ZonkyApiClientImpl;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -47,7 +48,7 @@ public class AverageLoanAmountControllerTest {
 
 	@Ignore
 	public void calculateAverageLoanAmount_readTimeout_503Response() throws Exception {
-		this.zonkyApiService = new ZonkyApiServiceImpl(new RestTemplateBuilder().setReadTimeout(5).build());
+		this.zonkyApiService = new ZonkyApiServiceImpl(new ZonkyApiClientImpl(new RestTemplateBuilder().setReadTimeout(5).build()));
 		this.controller = new AverageLoanAmountController(zonkyApiService);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(controller)
 				.setControllerAdvice(new RestResponseEntityExceptionHandler())
