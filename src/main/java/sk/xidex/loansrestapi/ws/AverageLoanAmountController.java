@@ -18,8 +18,8 @@ public class AverageLoanAmountController {
     }
 
     @GetMapping(path = "/average-loan-amount", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Double calculateAverageLoanAmount(@RequestParam(value = "rating") final String rating) {
-        return zonkyApiService.calculateAverageLoanAmount(rating);
+    public LoansAverageResponse calculateAverageLoanAmount(@RequestParam(value = "rating") final String rating) {
+        return new LoansAverageResponse(zonkyApiService.calculateAverageLoanAmount(rating));
     }
 }
 
